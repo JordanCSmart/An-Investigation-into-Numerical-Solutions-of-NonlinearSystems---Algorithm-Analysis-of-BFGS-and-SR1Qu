@@ -8,6 +8,16 @@ from scipy import special
 
 from mpl_toolkits import mplot3d
 
+def line_search(f,grad, X0, alpha0, roe, pk, c):
+    alpha = alpha0
+    Grad = np.transpose(grad(f,X0))
+    while f(X0- alpha*pk) <= f(X0) + c*alpha*Grad@pk:
+        alpha = alpha * roe
+                                                      
+    return alpha
+
+print(line_search(f,grad,X0,1,0.3,pk,0.3))
+
 def NewtonSystem(f, g, h, J, x0, y0, z0, max, tol):
     X0 = np.array([[x0], [y0],[z0]])
     X1 = np.array([[0], [0],[0]])
