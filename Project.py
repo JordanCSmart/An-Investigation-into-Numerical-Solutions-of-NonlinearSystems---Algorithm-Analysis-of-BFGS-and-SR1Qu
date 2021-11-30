@@ -9,15 +9,26 @@ import numdifftools as nd
 
 from mpl_toolkits import mplot3d
 
+def line_search(f, X0, pk):
+    alpha = 1
+    grad = nd.Gradient(f)(X0)
+    Grad = np.transpose(grad)
+    while f(X0- alpha*pk) < f(X0) + 0.1*alpha*Grad@pk:
+        alpha = alpha * 0.1
+                                                     
+    return alpha
+
 def NewtonSystems(f, B, X0, max, tol):
     X1 = 0
     for i in range(0, max):
         grad = nd.Gradient(f)(X0)
         pk = np.linalg.inv(B(X0)) @ -grad
-        alpha = 1
+        alpha = line_search(f, X0, pk)
         sk = alpha*pk
         X1 = X0 + sk
-        yk = nd.Gradient(f)(X1) - grad
+        for j in range(0, len(X0)):
+            if abs(X0[j]-X1[j]) > tol: break
+            elif j == len(X0)-1: return X0
         X0 = X1
     return X0
 
@@ -27,13 +38,16 @@ def BFGS(f, B, X0, max, tol):
     for i in range(0, max):
         grad = nd.Gradient(f)(X0)
         pk = np.linalg.inv(B(X0)) @ -grad
-        alpha = 1
+        alpha = line_search(f, X0, pk)
         sk = alpha*pk
         X1 = X0 + sk
         yk = nd.Gradient(f)(X1) - grad
+        for j in range(0, len(X0)):
+            if abs(X0[j]-X1[j]) > tol: break
+            elif j == len(X0)-1: return X0
         X0 = X1
-        B0 = B0 - (B0@sk@np.transpose(sk)*B0)/(np.transpose(sk)@B0@sk) + (yk@np.transpose(yk))/(np.transpose(yk)@yk)
-    return X0
+        B0 = B0 - (B0@sk@np.transpose(sk)*B0)/(np.transpose(sk)@B0@sk) + (yk@np.transpose(yk))/(np.transpose(yk)@sk)
+    return 'not enough iterations'
 
 # ax = plt.axes(projection = '3d')
 
