@@ -11,7 +11,7 @@ from mpl_toolkits import mplot3d
 
 def line_search(f, grad, X0, pk):
     alpha = 100
-    while f(X0- alpha*pk) <= f(X0) + 0.1*alpha*grad@pk:
+    while f(X0+ alpha*pk) <= f(X0) + 0.1*alpha*grad@pk:
         alpha = alpha * 0.1
                                                      
     return alpha
