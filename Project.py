@@ -9,11 +9,16 @@ import numdifftools as nd
 
 from mpl_toolkits import mplot3d
 
-def line_search(f, grad, X0, pk):
-    alpha = 100
-    while f(X0+ alpha*pk) <= f(X0) + 0.1*alpha*grad@pk:
+def line_search(f, grad, X0, pk, max):
+    alpha = 1.0
+    it = 0
+    while f(X0+ alpha*pk) <= (f(X0) + 0.55*alpha*np.transpose(grad)@pk) :
         alpha = alpha * 0.1
-                                                     
+        it = it +1
+        print(alpha)
+        if it == max:
+            break
+                                           
     return alpha
 
 def NewtonSystems(f, B, X0, max, tol):
@@ -21,8 +26,8 @@ def NewtonSystems(f, B, X0, max, tol):
     for i in range(0, max):
         grad = nd.Gradient(f)(X0)
         pk = np.linalg.inv(B(X0)) @ -grad
-        alpha = line_search(f, grad, X0, pk)
-        print(alpha)
+        alpha = line_search(f, grad, X0, pk, max)
+        #print(alpha)
         sk = alpha*pk
         X1 = X0 + sk
         for j in range(0, len(X0)):
@@ -37,7 +42,8 @@ def BFGS(f, B, X0, max, tol):
     for i in range(0, max):
         grad = nd.Gradient(f)(X0)
         pk = np.linalg.inv(B0) @ -grad
-        alpha = line_search(f, grad, X0, pk)
+        alpha = line_search(f, grad, X0, pk, max)
+        print(alpha)
         sk = alpha*pk
         X1 = X0 + sk
         yk = nd.Gradient(f)(X1) - grad
@@ -55,7 +61,7 @@ def SR1(f, B, X0, max, tol):
     for i in range(0, max):
         grad = nd.Gradient(f)(X0)
         pk = -H0 @ grad
-        alpha = line_search(f, grad, X0, pk)
+        alpha = line_search(f, grad, X0, pk, max)
         sk = alpha*pk
         X1 = X0 + sk
         yk = nd.Gradient(f)(X1) - grad
@@ -82,6 +88,9 @@ def func(x):
 def H(x):
     return np.array([[-400*(x[1]-x[0]**2)+800*x[0]**2+2, -400*x[0]], [-400*x[0], 200]])
 
+print('hello')
+
 print(NewtonSystems(func, H, [10, 10], 100, 1e-3))
+print('here')
 print(BFGS(func, H, [10, 10], 100, 1e-3))
 print(SR1(func, H, [10, 10], 100, 1e-3))
