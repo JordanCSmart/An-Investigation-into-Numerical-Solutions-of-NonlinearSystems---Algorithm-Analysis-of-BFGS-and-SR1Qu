@@ -66,20 +66,24 @@ def BFGS(f, B, X0, max, tol):
 
 def SR1(f, B, X0, max, tol):
     X1 = 0
-    B0 = B(X0)
-    H0 = np.linalg.inv(B0)
+    B0 = np.linalg.inv(B(X0))
     for i in range(0, max):
         grad = nd.Gradient(f)(X0)
-        pk = -H0 @ grad
-        alpha = line_search(f, X0, pk, max)
+        pk = B0 @ -grad
+        alpha = optimize.line_search(f, gradient, X0, pk)
+        if type(alpha[0]) != type(None): alpha = alpha[0]
+        else: alpha = .5
         sk = alpha*pk
         X1 = X0 + sk
         yk = nd.Gradient(f)(X1) - grad
         for j in range(0, len(X0)):
             if abs(X0[j]-X1[j]) > tol: break
-            elif j == len(X0)-1: return X0
+            elif j == len(X0)-1: return X1
         X0 = X1
-        H0 = H0 +((sk-H0@yk)@np.transpose(sk-H0@yk))/(np.transpose(yk)@(sk-H0@yk))
+        pk = np.transpose(np.array([pk]))
+        sk = np.transpose(np.array([sk]))
+        yk = np.transpose(np.array([yk]))
+        B0 = B0 + ((sk-B0@yk)@np.transpose(sk-B0@yk))/(np.transpose(sk-B0@yk)@yk)
     return 'not enough iterations'
 
 # ax = plt.axes(projection = '3d')
@@ -93,11 +97,12 @@ def SR1(f, B, X0, max, tol):
 # ax.plot3D(xline,yline,zline,'grey')
 
 def func(x):
-    return (1-x[0])**2+100*(x[1]-x[0]**2)**2
+    return (1-x[0])**2+10*(x[1]-x[0]**2)**2
 
 def H(x):
-    return np.array([[-400*(x[1]-x[0]**2)+800*x[0]**2+2, -400*x[0]], [-400*x[0], 200]])
+    return np.array([[-40*(x[1]-x[0]**2)+80*x[0]**2+2, -40*x[0]], [-40*x[0], 20]])
 
-print(NewtonSystems(func, H, [-2, 3], 100000, 1e-4))
-print(BFGS(func, H, [-2, 3], 100000, 1e-4))
-print(SR1(func, H, [-2, 3], 100000, 1e-4))
+print(NewtonSystems(func, H, [-2, 20], 100000, 1e-4))
+print(BFGS(func, H, [-2, 20], 100000, 1e-4))
+print(SR1(func, H, [-2, 20], 100000, 1e-4))
+
